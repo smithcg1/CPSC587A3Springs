@@ -7,8 +7,8 @@
 #include "io.h"
 #include "turntable_controls.h"
 
-#include "Mass.h"
-#include "Spring.h"
+#include "Simstate.h"
+
 
 #include <math.h>
 
@@ -27,32 +27,7 @@ void updateForces();
 void updateMasses();
 
 
-void removeOldScene(){
-    masses.clear();
-    springs.clear();
-}
 
-void scene1Setup(){
-    removeOldScene();
-    numMasses = 2;
-    simsPerFrame = 16;
-
-    deltT = 0.001;
-    k = 200;
-    b = 10;
-    l = 10;
-}
-
-void scene2Setup(){
-    removeOldScene();
-    numMasses = 10;
-    simsPerFrame = 512;
-
-    deltT = 0.00005;
-    k = 800;
-    b = 10;
-    l = 2;
-}
 
 
 
@@ -63,14 +38,12 @@ int main(void)
     window.enableVsync(true);
 
     auto view = View(TurnTable(), Perspective());
-    TurnTableControls controls(window, view.camera, *this);
+    TurnTableControls controls(window, view.camera);
+
+    SimState simState = Simstate();
 
     glClearColor(1.f, 1.f, 1.f, 1.f);
     float u = 0.;
-
-    if(mode == 1){scene1Setup();}
-    if(mode == 2){scene2Setup();}
-
 
 
     //Setup shapes
@@ -97,7 +70,7 @@ int main(void)
     );
 
     auto planePt1 = createRenderable(
-        Triangle(Point1(-planeSize, 0.0f, -planeSize), Point2(-planeSize, 0.0f, planeSize), Point3(planeSize, 0.0f, planeSize)),
+        Triangle(Point1(-simState.planeSize, 0.0f, -simState.planeSize), Point2(-simState.planeSize, 0.0f, simState.planeSize), Point3(.simStateplaneSize, 0.0f, simState.planeSize)),
         Phong(Colour(1., 1., 0.1529), LightPosition(0., 0., 10.))
     );
 
@@ -108,19 +81,7 @@ int main(void)
 
 
 
-    //Create masses
-    for(int i = 0 ; i < numMasses ; i++){
-        Mass newMass = Mass();
-        masses.push_back(newMass);
-        std::cout << "Mass created" << std::endl;
-    }
 
-    //Create springs
-    for(int i = 0 ; i < (numMasses-1) ; i++){
-        Spring newSpring = Spring(i, i+1);
-        springs.push_back(newSpring);
-        std::cout << "Spring created" << std::endl;
-    }
 
 
     //Setup initial conditions
