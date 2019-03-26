@@ -39,7 +39,27 @@ int main(void)
     window.enableVsync(true);
 
     auto view = View(TurnTable(), Perspective());
-    TurnTableControls controls(window, view.camera, &simState);
+    TurnTableControls controls(window, view.camera);
+
+    //Setup keybindings
+    window.keyboardCommands() |
+            io::Key(GLFW_KEY_1, [&](auto const &event) {
+        if (event.action == GLFW_PRESS)
+            simState.scene1Setup();
+    })
+            | io::Key(GLFW_KEY_2, [&](auto const &event) {
+        if (event.action == GLFW_PRESS)
+            simState.scene2Setup();
+    })
+            | io::Key(GLFW_KEY_3, [&](auto const &event) {
+        if (event.action == GLFW_PRESS)
+            simState.scene3Setup();
+    })
+            | io::Key(GLFW_KEY_4, [&](auto const &event) {
+        if (event.action == GLFW_PRESS)
+            simState.scene4Setup();
+    });
+
 
     glClearColor(1.f, 1.f, 1.f, 1.f);
     float u = 0.;

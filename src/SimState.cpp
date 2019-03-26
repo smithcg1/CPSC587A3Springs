@@ -2,12 +2,12 @@
 
 SimState::SimState()
 {
-    scene4Setup();
+    scene2Setup();
 }
 
 void SimState::removeOldScene(){
-    //addRoof = false;
-    //addTable = false;
+    addRoof = false;
+    addTable = false;
 
     std::cout << "Delete Springs" << std::endl;
     springs.clear();
@@ -46,7 +46,7 @@ void SimState::scene2Setup(){
 
     deltT = 0.00005;
     k = 800;
-    b = 5;
+    b = 4;
     l = 2;
 
     std::cout << "Creating objects" << std::endl;
@@ -63,26 +63,36 @@ void SimState::scene2Setup(){
     }
 }
 
-
-//NOT DONE
+//To-do:
+//Add springs to cube
+//Add collision
+//Tune simulations
+//Add buttons to change simulation
 void SimState::scene3Setup(){
     removeOldScene();
 
-    numMasses = 10;
-    simsPerFrame = 512;
+    int width = 10;
+    int hight = 10;
+    int length = 10;
 
-    deltT = 0.00005;
+    float spaceing = 5;
+
+    numMasses = width*hight*length;
+    simsPerFrame = 128;
+
+    deltT = 0.0005;
     k = 800;
     b = 10;
-    l = 2;
+    l = 5;
 
     createMasses();
-    create3DSprings();
+    //create3DSprings();
 
-    masses[0].location = vec3(0.0f, planeHight, 0.0f);
-    masses[0].dynamic = false;
-    for( float i = 1; i < masses.size() ; i++){
-        masses[i].location = vec3(l*i, planeHight, 0.0f);
+    for(int i = 0 ; i < masses.size() ; i++){
+        float x = (-width*l/2)+((i%width)*spaceing);
+        float z = (-length*l/2)+(    ((int)floor((float)i/width)%length)    *spaceing);
+        float y = planeHight -  (    floor((float)i/(width*length))    *spaceing);
+        masses[i].location = vec3(x, y, z);
     }
 }
 

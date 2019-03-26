@@ -8,8 +8,7 @@ class TurnTableControls {
     public:
         TurnTableControls(
             io::Window &w,
-            CameraT &c,
-            SimState* simState
+            CameraT &c
         ) : m_window(w)
           , m_camera(c)
         {
@@ -25,18 +24,8 @@ class TurnTableControls {
                   [&](auto const &event) {
                     if (event.action == GLFW_PRESS)
                         yLock = !yLock;
-                  })
-              | io::Key(GLFW_KEY_1,
-                  [&](auto const &event) {
-                    if (event.action == GLFW_PRESS)
-                        simState->scene1Setup();
-                  })
-              | io::Key(GLFW_KEY_2,
-                  [&](auto const &event) {
-                    if (event.action == GLFW_PRESS)
-                        std::cout << "BLA" << std::endl;
-                        simState->scene2Setup();
                   });
+
 
           m_window.mouseCommands() | //
               io::MouseButton(     //
