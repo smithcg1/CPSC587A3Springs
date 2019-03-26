@@ -167,17 +167,17 @@ void updateForces(){
         vec3 direction = normalize(massLocDiff);
 
         vec3 F = -simState.k*(len - simState.l)*direction;         //Base force
-        vec3 F1 = F - simState.b*simState.masses[simState.springs[i].mass1Index].velocity;
-        vec3 F2 = F - simState.b*simState.masses[simState.springs[i].mass2Index].velocity;
 
-        simState.masses[simState.springs[i].mass1Index].totalForce += -F1;
-        simState.masses[simState.springs[i].mass2Index].totalForce += F2;
+        simState.masses[simState.springs[i].mass1Index].totalForce += -F;
+        simState.masses[simState.springs[i].mass2Index].totalForce += F;
     }
+
 }
 
 void updateMasses(){
     for (int i = 0 ; i < simState.masses.size() ; i++){
         if(simState.masses[i].dynamic){
+            simState.masses[i].totalForce = simState.masses[i].totalForce - simState.b*simState.masses[i].velocity;
             //std::cout << "Mass " << i << " has force: (" << masses[i].totalForce.x << ", " << masses[i].totalForce.y << ", " << masses[i].totalForce.z << ") applied to it" << std::endl;
             vec3 a = simState.masses[i].totalForce/simState.masses[i].weight;
             a += simState.g;

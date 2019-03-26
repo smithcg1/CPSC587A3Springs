@@ -6,8 +6,8 @@ SimState::SimState()
 }
 
 void SimState::removeOldScene(){
-    addRoof = false;
-    addTable = false;
+    //addRoof = false;
+    //addTable = false;
 
     std::cout << "Delete Springs" << std::endl;
     springs.clear();
@@ -46,7 +46,7 @@ void SimState::scene2Setup(){
 
     deltT = 0.00005;
     k = 800;
-    b = 10;
+    b = 5;
     l = 2;
 
     std::cout << "Creating objects" << std::endl;
@@ -93,13 +93,13 @@ void SimState::scene4Setup(){
     int width = 10;
     int hight = 10;
 
-    float spaceing = 5;
+    float spaceing = 6;
 
     numMasses = width*hight;
     simsPerFrame = 512;
 
     deltT = 0.00005;
-    k = 200;
+    k = 800;
     b = 10;
     l = 5;
 
@@ -127,7 +127,7 @@ void SimState::createMasses(){
     for(int i = 0 ; i < numMasses ; i++){
         Mass newMass = Mass();
         masses.push_back(newMass);
-        std::cout << "Mass created" << std::endl;
+        //std::cout << "Mass created" << std::endl;
     }
 }
 
@@ -136,7 +136,7 @@ void SimState::create1DSprings(){
     for(int i = 0 ; i < (numMasses-1) ; i++){
         Spring newSpring = Spring(i, i+1);
         springs.push_back(newSpring);
-        std::cout << "Spring created" << std::endl;
+        //std::cout << "Spring created" << std::endl;
     }
 }
 
@@ -145,17 +145,18 @@ void SimState::create2DSprings(int width){
 
     //Create springs
     for(int i = 0 ; i < (numMasses-1) ; i++){
-        if(i < (numMasses-1-width)){         //If not bottom row
+        if(i <= (numMasses-1-width)){         //If not bottom row
             newSpring = Spring(i, i+width);      //Down
             springs.push_back(newSpring);
 
-            if(i%width != (width-1))            //If no right edge
+            if(i%width != (width-1)){            //If not right edge
                 newSpring = Spring(i, i+1);          //Right
                 springs.push_back(newSpring);
                 newSpring = Spring(i, i+1+width);    //Down-Right
                 springs.push_back(newSpring);
+            }
 
-            if(i%width != 0){                   //If not left edge
+            if(i%width != 0){  //If not left edge
                 newSpring = Spring(i, i-1+width);      //Attach Down-Left
                 springs.push_back(newSpring);
             }
