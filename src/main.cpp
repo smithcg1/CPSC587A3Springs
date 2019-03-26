@@ -7,7 +7,7 @@
 #include "io.h"
 #include "turntable_controls.h"
 
-#include "Simstate.h"
+#include "SimState.h"
 
 
 #include <math.h>
@@ -26,7 +26,7 @@ void physicsCalculation();
 void updateForces();
 void updateMasses();
 
-
+SimState simState = SimState();
 
 
 
@@ -39,8 +39,6 @@ int main(void)
 
     auto view = View(TurnTable(), Perspective());
     TurnTableControls controls(window, view.camera);
-
-    SimState simState = Simstate();
 
     glClearColor(1.f, 1.f, 1.f, 1.f);
     float u = 0.;
@@ -70,35 +68,14 @@ int main(void)
     );
 
     auto planePt1 = createRenderable(
-        Triangle(Point1(-simState.planeSize, 0.0f, -simState.planeSize), Point2(-simState.planeSize, 0.0f, simState.planeSize), Point3(.simStateplaneSize, 0.0f, simState.planeSize)),
+        Triangle(Point1(-simState.planeSize, 0.0f, -simState.planeSize), Point2(-simState.planeSize, 0.0f, simState.planeSize), Point3(simState.planeSize, 0.0f, simState.planeSize)),
         Phong(Colour(1., 1., 0.1529), LightPosition(0., 0., 10.))
     );
 
     auto planePt2 = createRenderable(
-        Triangle(Point1(planeSize, 0.0f, planeSize), Point2(planeSize, 0.0f, -planeSize), Point3(-planeSize, 0.0f, -planeSize)),
+        Triangle(Point1(simState.planeSize, 0.0f, simState.planeSize), Point2(simState.planeSize, 0.0f, -simState.planeSize), Point3(-simState.planeSize, 0.0f, -simState.planeSize)),
         Phong(Colour(1., 1., 0.1529), LightPosition(0., 0., 10.))
     );
-
-
-
-
-
-
-    //Setup initial conditions
-    if(mode == 1){
-        float strech = 2.2f;
-        masses[0].location = vec3(0.0f, planeHight, 0.0f);
-        masses[0].dynamic = false;
-        masses[1].location = vec3(0.0f, planeHight-(strech*l), 0.0f);
-    }
-
-    if(mode == 2){
-        masses[0].location = vec3(0.0f, planeHight, 0.0f);
-        masses[0].dynamic = false;
-        for( float i = 1; i < masses.size() ; i++){
-            masses[i].location = vec3(l*i, planeHight, 0.0f);
-        }
-    }
 
 
 
@@ -109,36 +86,35 @@ int main(void)
         view.projection.updateAspectRatio(window.width(), window.height());
 
         //Physics calculations
-        for( int i = 0 ; i < simsPerFrame ; i++){
+        for( int i = 0 ; i < simState.simsPerFrame ; i++){
             physicsCalculation();
         }
 
         //Draw top plane
-        if(mode == 1 || mode == 2){
-            auto m = translate(mat4f{1.f}, vec3f{0.0, planeHight, 0.0});
-            draw(planePt1, view, m);
-            draw(planePt2, view, m);
-        }
+        auto m = translate(mat4f{1.f}, vec3f{0.0, simState.planeHight, 0.0});
+        draw(planePt1, view, m);
+        draw(planePt2, view, m);
+
 
         u += frameTime;
 
         //Draw masses
-        for (int i = 0; i < masses.size(); i++) {
-            auto m = translate(mat4f{1.f}, masses[i].location);
+        for (int i = 0; i < simState.masses.size(); i++) {
+            auto m = translate(mat4f{1.f}, simState.masses[i].location);
             addInstance(spheres, m);
         }
         draw(spheres, view);
 
 
         //Draw springs
-        for (int i = 0; i < springs.size(); i++){
+        for (int i = 0; i < simState.springs.size(); i++){
             //Get spring vector
-            vec3 massLocDiff = masses[springs[i].mass2Index].location - masses[springs[i].mass1Index].location;
+            vec3 massLocDiff = simState.masses[simState.springs[i].mass2Index].location - simState.masses[simState.springs[i].mass1Index].location;
             float len = glm::length(massLocDiff);
 
             //Translate
             auto m = mat4f{1.f};
-            m = translate(m, masses[springs[i].mass1Index].location);
+            m = translate(m, simState.masses[simState.springs[i].mass1Index].location);
 
 
             float angle1;
@@ -204,36 +180,36 @@ void physicsCalculation(){
 
 void updateForces(){
     //Spring force
-    for(int i = 0; i < springs.size(); i++){
-        vec3 massLocDiff = masses[springs[i].mass2Index].location - masses[springs[i].mass1Index].location;
+    for(int i = 0; i < simState.springs.size(); i++){
+        vec3 massLocDiff = simState.masses[simState.springs[i].mass2Index].location - simState.masses[simState.springs[i].mass1Index].location;
         float len = glm::length(massLocDiff);
         vec3 direction = normalize(massLocDiff);
 
-        vec3 F = -k*(len - l)*direction;         //Base force
-        vec3 F1 = F - b*masses[springs[i].mass1Index].velocity;
-        vec3 F2 = F - b*masses[springs[i].mass2Index].velocity;
+        vec3 F = -simState.k*(len - simState.l)*direction;         //Base force
+        vec3 F1 = F - simState.b*simState.masses[simState.springs[i].mass1Index].velocity;
+        vec3 F2 = F - simState.b*simState.masses[simState.springs[i].mass2Index].velocity;
 
-        masses[springs[i].mass1Index].totalForce += -F1;
-        masses[springs[i].mass2Index].totalForce += F2;
+        simState.masses[simState.springs[i].mass1Index].totalForce += -F1;
+        simState.masses[simState.springs[i].mass2Index].totalForce += F2;
     }
 
     //Gravity
-    for (int i = 0 ; i < masses.size() ; i++){
+    for (int i = 0 ; i < simState.masses.size() ; i++){
         //masses[i].totalForce += g;
     }
 }
 
 void updateMasses(){
-    for (int i = 0 ; i < masses.size() ; i++){
-        if(masses[i].dynamic){
+    for (int i = 0 ; i < simState.masses.size() ; i++){
+        if(simState.masses[i].dynamic){
             //std::cout << "Mass " << i << " has force: (" << masses[i].totalForce.x << ", " << masses[i].totalForce.y << ", " << masses[i].totalForce.z << ") applied to it" << std::endl;
-            vec3 a = masses[i].totalForce/masses[i].weight;
-            a += g;
-            masses[i].velocity = masses[i].velocity + (a*deltT);
-            masses[i].location = masses[i].location + (masses[i].velocity*deltT);
+            vec3 a = simState.masses[i].totalForce/simState.masses[i].weight;
+            a += simState.g;
+            simState.masses[i].velocity = simState.masses[i].velocity + (a*simState.deltT);
+            simState.masses[i].location = simState.masses[i].location + (simState.masses[i].velocity*simState.deltT);
         }
 
-        masses[i].totalForce = vec3(0.0f, 0.0f, 0.0f);
+        simState.masses[i].totalForce = vec3(0.0f, 0.0f, 0.0f);
     }
 }
 

@@ -1,4 +1,4 @@
-#include "Simstate.h"
+#include "SimState.h"
 
 SimState::SimState()
 {
@@ -11,7 +11,7 @@ void SimState::removeOldScene(){
 }
 
 void SimState::scene1Setup(){
-    removeOldScene();
+    //removeOldScene();
     numMasses = 2;
     simsPerFrame = 16;
 
@@ -19,6 +19,14 @@ void SimState::scene1Setup(){
     k = 200;
     b = 10;
     l = 10;
+
+    createMasses();
+    createSprings();
+
+    float strech = 2.2f;
+    masses[0].location = vec3(0.0f, planeHight, 0.0f);
+    masses[0].dynamic = false;
+    masses[1].location = vec3(0.0f, planeHight-(strech*l), 0.0f);
 }
 
 void SimState::scene2Setup(){
@@ -30,7 +38,18 @@ void SimState::scene2Setup(){
     k = 800;
     b = 10;
     l = 2;
+
+    createMasses();
+    createSprings();
+
+    masses[0].location = vec3(0.0f, planeHight, 0.0f);
+    masses[0].dynamic = false;
+    for( float i = 1; i < masses.size() ; i++){
+        masses[i].location = vec3(l*i, planeHight, 0.0f);
+    }
 }
+
+
 
 void SimState::createMasses(){
     //Create masses
