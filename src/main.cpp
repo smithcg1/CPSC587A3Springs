@@ -25,6 +25,7 @@ PhongStyle::InstancedRenderContext cylinders;
 void physicsCalculation();
 void updateForces();
 void updateMasses();
+void createShapes();
 
 SimState simState = SimState();
 
@@ -38,35 +39,14 @@ int main(void)
     window.enableVsync(true);
 
     auto view = View(TurnTable(), Perspective());
-    TurnTableControls controls(window, view.camera);
+    TurnTableControls controls(window, view.camera, &simState);
 
     glClearColor(1.f, 1.f, 1.f, 1.f);
     float u = 0.;
 
 
-    //Setup shapes
-    spheres = createInstancedRenderable(
-        Sphere(
-            Radius(1.0f)
-        ),
-        Phong(
-            Colour(1., 1., 0.1529),
-            LightPosition(0., 0.0, 20.0)
-        )
-    );
 
-    cylinders = createInstancedRenderable(
-        Cylinder(
-            Point1(0.0f, 0.0f, 0.0f),
-            Point2(0.0f, -1.0f, 0.0f),
-            Radius(0.4f)
-        ),
-        Phong(
-            Colour(1., 1., 0.1529),
-            LightPosition(0., 0.0, 20.0)
-        )
-    );
-
+    createShapes();
     auto planePt1 = createRenderable(
         Triangle(Point1(-simState.planeSize, 0.0f, -simState.planeSize), Point2(-simState.planeSize, 0.0f, simState.planeSize), Point3(simState.planeSize, 0.0f, simState.planeSize)),
         Phong(Colour(1., 1., 0.1529), LightPosition(0., 0., 10.))
@@ -76,7 +56,6 @@ int main(void)
         Triangle(Point1(simState.planeSize, 0.0f, simState.planeSize), Point2(simState.planeSize, 0.0f, -simState.planeSize), Point3(-simState.planeSize, 0.0f, -simState.planeSize)),
         Phong(Colour(1., 1., 0.1529), LightPosition(0., 0., 10.))
     );
-
 
 
     /////////////////////////////////////////////////////
@@ -90,10 +69,12 @@ int main(void)
             physicsCalculation();
         }
 
-        //Draw top plane
-        auto m = translate(mat4f{1.f}, vec3f{0.0, simState.planeHight, 0.0});
-        draw(planePt1, view, m);
-        draw(planePt2, view, m);
+        if(simState.addRoof){
+            //Draw top plane
+            auto m = translate(mat4f{1.f}, vec3f{0.0, simState.planeHight, 0.0});
+            draw(planePt1, view, m);
+            draw(planePt2, view, m);
+        }
 
 
         u += frameTime;
@@ -192,11 +173,6 @@ void updateForces(){
         simState.masses[simState.springs[i].mass1Index].totalForce += -F1;
         simState.masses[simState.springs[i].mass2Index].totalForce += F2;
     }
-
-    //Gravity
-    for (int i = 0 ; i < simState.masses.size() ; i++){
-        //masses[i].totalForce += g;
-    }
 }
 
 void updateMasses(){
@@ -213,4 +189,34 @@ void updateMasses(){
     }
 }
 
+
+
+        /////////////////////////////////////////////////////
+        //////////////////// Shape Stuff ////////////////////
+        /////////////////////////////////////////////////////
+
+void createShapes(){
+    //Setup shapes
+    spheres = createInstancedRenderable(
+        Sphere(
+            Radius(1.0f)
+        ),
+        Phong(
+            Colour(1., 1., 0.1529),
+            LightPosition(0., 0.0, 20.0)
+        )
+    );
+
+    cylinders = createInstancedRenderable(
+        Cylinder(
+            Point1(0.0f, 0.0f, 0.0f),
+            Point2(0.0f, -1.0f, 0.0f),
+            Radius(0.4f)
+        ),
+        Phong(
+            Colour(1., 1., 0.1529),
+            LightPosition(0., 0.0, 20.0)
+        )
+    );
+}
 

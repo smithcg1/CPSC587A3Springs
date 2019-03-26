@@ -11,9 +11,13 @@ public:
     void removeOldScene();
     void scene1Setup();
     void scene2Setup();
+    void scene3Setup();
+    void scene4Setup();
 
     void createMasses();
-    void createSprings();
+    void create1DSprings();
+    void create2DSprings(int width);
+    void create3DSprings();
 
     int numMasses;              //Number of masses in the system
     int simsPerFrame;
@@ -30,6 +34,8 @@ public:
     float planeSize = 10.0;
     float planeHight = 10.0;
 
+    bool addRoof = false;
+    bool addTable = false;
 };
 
 #endif // SIMSTATE_H

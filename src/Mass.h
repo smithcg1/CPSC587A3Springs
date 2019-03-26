@@ -4,9 +4,6 @@
 #include "givr.h"
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "io.h"
-#include "turntable_controls.h"
-
 using namespace glm;
 using namespace givr;
 using namespace givr::camera;

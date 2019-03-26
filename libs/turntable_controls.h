@@ -1,12 +1,15 @@
 #pragma once
 #include "io.h"
+#include "SimState.h"
+
 
 template <typename CameraT>
 class TurnTableControls {
     public:
         TurnTableControls(
             io::Window &w,
-            CameraT &c
+            CameraT &c,
+            SimState* simState
         ) : m_window(w)
           , m_camera(c)
         {
@@ -26,7 +29,13 @@ class TurnTableControls {
               | io::Key(GLFW_KEY_1,
                   [&](auto const &event) {
                     if (event.action == GLFW_PRESS)
-                        std::cout << "TEST" << std::endl;
+                        simState->scene1Setup();
+                  })
+              | io::Key(GLFW_KEY_2,
+                  [&](auto const &event) {
+                    if (event.action == GLFW_PRESS)
+                        std::cout << "BLA" << std::endl;
+                        simState->scene2Setup();
                   });
 
           m_window.mouseCommands() | //
