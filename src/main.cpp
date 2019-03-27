@@ -238,10 +238,13 @@ void collisionResolution(int i){
             simState.masses[i].velocity.y < 0)     //Collision with plane
         simState.masses[i].velocity.y = 0.0f;
 
+    float maxDepth = 1.0f;
+
     //Table collision
     if(simState.scene == 6){
         //Collission with top of table
-        if(simState.masses[i].location.y <= simState.tableHight &&
+        if(     (simState.masses[i].location.y <= simState.tableHight) &&
+                simState.masses[i].location.y > (simState.tableHight-maxDepth) &&
                 (simState.masses[i].location.x < simState.planeSize && simState.masses[i].location.x > -simState.planeSize) &&
                 (simState.masses[i].location.z < simState.planeSize && simState.masses[i].location.z > -simState.planeSize)){
             if(simState.masses[i].velocity.y < 0){
@@ -249,7 +252,45 @@ void collisionResolution(int i){
             }
         }
 
+        //Left side of table
+        if(     (simState.masses[i].location.y <= simState.tableHight) &&
+                (simState.masses[i].location.x < simState.planeSize && simState.masses[i].location.x > -simState.planeSize) &&
+                simState.masses[i].location.x < -simState.planeSize+maxDepth &&
+                (simState.masses[i].location.z < simState.planeSize && simState.masses[i].location.z > -simState.planeSize)){
+            if(simState.masses[i].velocity.x > 0){
+                simState.masses[i].velocity.x = 0.0f;
+            }
+        }
 
+        //Right side of table
+        if(     (simState.masses[i].location.y <= simState.tableHight) &&
+                (simState.masses[i].location.x < simState.planeSize && simState.masses[i].location.x > -simState.planeSize) &&
+                simState.masses[i].location.x < simState.planeSize-maxDepth &&
+                (simState.masses[i].location.z < simState.planeSize && simState.masses[i].location.z > -simState.planeSize)){
+            if(simState.masses[i].velocity.x < 0){
+                simState.masses[i].velocity.x = 0.0f;
+            }
+        }
+
+        //Front side of table
+        if(     (simState.masses[i].location.y <= simState.tableHight) &&
+                (simState.masses[i].location.x < simState.planeSize && simState.masses[i].location.x > -simState.planeSize) &&
+                (simState.masses[i].location.z < simState.planeSize && simState.masses[i].location.z > -simState.planeSize) &&
+                simState.masses[i].location.z < -simState.planeSize+maxDepth){
+            if(simState.masses[i].velocity.z > 0){
+                simState.masses[i].velocity.z = 0.0f;
+            }
+        }
+
+        //Back side of table
+        if(     (simState.masses[i].location.y <= simState.tableHight) &&
+                (simState.masses[i].location.x < simState.planeSize && simState.masses[i].location.x > -simState.planeSize) &&
+                (simState.masses[i].location.z < simState.planeSize && simState.masses[i].location.z > -simState.planeSize) &&
+                simState.masses[i].location.z > simState.planeSize-maxDepth){
+            if(simState.masses[i].velocity.z < 0){
+                simState.masses[i].velocity.z = 0.0f;
+            }
+        }
     }
 }
 

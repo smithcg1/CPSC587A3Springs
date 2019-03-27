@@ -158,19 +158,19 @@ void SimState::scene5Setup(){
 void SimState::scene6Setup(){
     removeOldScene();
 
-    int width = 10;
-    int hight = 10;
+    int width = 32;
+    int hight = 32;
 
-    float spaceing = 5;
+    float spaceing = 1.2;
 
     scene = 6;
     numMasses = width*hight;
-    simsPerFrame = 512;
+    simsPerFrame = 32;
 
-    deltT = 0.00005;
+    deltT = 0.001;
     k = 800;
     b = 10;
-    l = 5;
+    l = 1.2;
 
     createMasses();
     create2DSprings(width);
@@ -178,7 +178,8 @@ void SimState::scene6Setup(){
     for(int i = 0 ; i < masses.size() ; i++){
         float x = ((-(width-1)*spaceing)/2)+((i%width)*spaceing);
         float y = planeHight*3;
-        float z = -22.0f + (floor((float)i/width)*spaceing);
+        //float z = -(hight-1/2) + (floor((float)i/width)*spaceing);
+        float z = ((-(hight-1)*spaceing)/2)+   (    ((int)floor((float)i/hight)%hight)    *spaceing);
         masses[i].location = vec3(x, y, z);
     }
 }
