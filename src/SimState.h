@@ -17,7 +17,7 @@ public:
     void createMasses();
     void create1DSprings();
     void create2DSprings(int width);
-    void create3DSprings();
+    void create3DSprings(int width, int length);
 
     int numMasses;              //Number of masses in the system
     int simsPerFrame;

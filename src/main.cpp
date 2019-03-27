@@ -1,3 +1,10 @@
+//To-do:
+//Add springs to cube
+//Add collision
+//Tune simulations
+//Complete bonus 2 table
+//Complete bonus 1 Wind
+
 //------------------------------------------------------------------------------
 // A simple example showing how to use the triangle geometry
 //------------------------------------------------------------------------------
