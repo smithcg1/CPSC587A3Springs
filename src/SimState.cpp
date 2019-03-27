@@ -2,21 +2,18 @@
 
 SimState::SimState()
 {
-    scene3Setup();
+    scene6Setup();
 }
 
 void SimState::removeOldScene(){
-    addRoof = false;
-    addTable = false;
-
-    std::cout << "Delete Springs" << std::endl;
     springs.clear();
-    std::cout << "Delete masses" << std::endl;
     masses.clear();
 }
 
 void SimState::scene1Setup(){
     removeOldScene();
+
+    scene = 1;
     numMasses = 2;
     simsPerFrame = 16;
 
@@ -28,8 +25,6 @@ void SimState::scene1Setup(){
     createMasses();
     create1DSprings();
 
-    addRoof = true;
-
     float strech = 2.2f;
     masses[0].location = vec3(0.0f, planeHight, 0.0f);
     masses[0].dynamic = false;
@@ -37,10 +32,9 @@ void SimState::scene1Setup(){
 }
 
 void SimState::scene2Setup(){
-    std::cout << "Clearing old" << std::endl;
     removeOldScene();
 
-    std::cout << "Setting variables" << std::endl;
+    scene = 2;
     numMasses = 10;
     simsPerFrame = 512;
 
@@ -49,13 +43,9 @@ void SimState::scene2Setup(){
     b = 4;
     l = 2;
 
-    std::cout << "Creating objects" << std::endl;
     createMasses();
     create1DSprings();
 
-    addRoof = true;
-
-    std::cout << "Moving masses" << std::endl;
     masses[0].location = vec3(0.0f, planeHight, 0.0f);
     masses[0].dynamic = false;
     for( float i = 1; i < masses.size() ; i++){
@@ -65,7 +55,6 @@ void SimState::scene2Setup(){
 
 void SimState::scene3Setup(){
     removeOldScene();
-
 
     int width = 10;
     int hight = 10;
@@ -79,24 +68,25 @@ void SimState::scene3Setup(){
         length = cubeSize;
     }
 
-    float spaceing = 10;
+    float spaceing = 4.5;
 
+    scene = 3;
     numMasses = width*hight*length;
     simsPerFrame = 128;
 
-    deltT = 0.000005;
-    k = 100;
+    deltT = 0.0001;
+    k = 800;
     b = 10;
-    l = 10;
+    l = 5;
 
     createMasses();
     create3DSprings(width, length);
 
     for(int i = 0 ; i < masses.size() ; i++){
-        float x = (-width*l/2)+((i%width)*spaceing);
-        float z = (-length*l/2)+(    ((int)floor((float)i/width)%length)    *spaceing);
+        float x = ((-(width-1)*spaceing)/2)+((i%width)*spaceing);
+        float z = ((-(length-1)*spaceing)/2)+   (    ((int)floor((float)i/width)%length)    *spaceing);
         float y = planeHight -  (    floor((float)i/(width*length))    *spaceing);
-        masses[i].location = vec3(x, y, z);
+        masses[i].location = vec3(x, y+20, z);
     }
 }
 
@@ -109,6 +99,7 @@ void SimState::scene4Setup(){
 
     float spaceing = 6;
 
+    scene = 4;
     numMasses = width*hight;
     simsPerFrame = 512;
 
@@ -121,13 +112,74 @@ void SimState::scene4Setup(){
     create2DSprings(width);
 
     for(int i = 0 ; i < masses.size() ; i++){
-        float x = (-width*l/2)+((i%width)*spaceing);
+        float x = ((-(width-1)*spaceing)/2)+((i%width)*spaceing);
         float y = planeHight - (floor((float)i/width)*spaceing);
         float z = 0.0f;
         masses[i].location = vec3(x, y, z);
 
         if(i < width)
             masses[i].dynamic = false;
+    }
+}
+
+//Flapping flag
+void SimState::scene5Setup(){
+    removeOldScene();
+
+    int width = 10;
+    int hight = 10;
+
+    float spaceing = 6;
+
+    scene = 5;
+    numMasses = width*hight;
+    simsPerFrame = 512;
+
+    deltT = 0.00005;
+    k = 800;
+    b = 10;
+    l = 5;
+
+    createMasses();
+    create2DSprings(width);
+
+    for(int i = 0 ; i < masses.size() ; i++){
+        float x = ((-(width-1)*spaceing)/2)+((i%width)*spaceing);
+        float y = planeHight - (floor((float)i/width)*spaceing);
+        float z = 0.0f;
+        masses[i].location = vec3(x, y, z);
+
+        if(i == 0 || i == (int)floor(hight/2)*width || i == (hight-1)*width)
+            masses[i].dynamic = false;
+    }
+}
+
+//Cloth on table
+void SimState::scene6Setup(){
+    removeOldScene();
+
+    int width = 10;
+    int hight = 10;
+
+    float spaceing = 5;
+
+    scene = 6;
+    numMasses = width*hight;
+    simsPerFrame = 512;
+
+    deltT = 0.00005;
+    k = 800;
+    b = 10;
+    l = 5;
+
+    createMasses();
+    create2DSprings(width);
+
+    for(int i = 0 ; i < masses.size() ; i++){
+        float x = ((-(width-1)*spaceing)/2)+((i%width)*spaceing);
+        float y = planeHight*3;
+        float z = -22.0f + (floor((float)i/width)*spaceing);
+        masses[i].location = vec3(x, y, z);
     }
 }
 

@@ -32,6 +32,7 @@ PhongStyle::InstancedRenderContext cylinders;
 void physicsCalculation();
 void updateForces();
 void updateMasses();
+void collisionResolution(int i);
 void createShapes();
 
 SimState simState = SimState();
@@ -65,6 +66,14 @@ int main(void)
             | io::Key(GLFW_KEY_4, [&](auto const &event) {
         if (event.action == GLFW_PRESS)
             simState.scene4Setup();
+    })
+            | io::Key(GLFW_KEY_5, [&](auto const &event) {
+        if (event.action == GLFW_PRESS)
+            simState.scene5Setup();
+    })
+            | io::Key(GLFW_KEY_6, [&](auto const &event) {
+        if (event.action == GLFW_PRESS)
+            simState.scene6Setup();
     });
 
 
@@ -96,9 +105,18 @@ int main(void)
             physicsCalculation();
         }
 
-        if(simState.addRoof){
+        if(simState.scene == 1 || simState.scene == 2){
             //Draw top plane
             auto m = translate(mat4f{1.f}, vec3f{0.0, simState.planeHight, 0.0});
+            draw(planePt1, view, m);
+            draw(planePt2, view, m);
+        }
+
+        if(simState.scene == 3 || simState.scene == 6){
+            //Draw top plane
+            auto m = translate(mat4f{1.f}, vec3f{0.0, simState.tableHight, 0.0});
+            if(simState.scene == 3)
+                m = scale(m, vec3f{2.0, 1.0, 2.0});
             draw(planePt1, view, m);
             draw(planePt2, view, m);
         }
@@ -152,11 +170,6 @@ int main(void)
             m = scale(m, vec3f{1.0f, len, 1.0f});
 
             addInstance(cylinders, m);
-
-
-            //std::cout << "dist (" << massLocDiff.x << ", " << massLocDiff.y << ", " << massLocDiff.z << ")" << std::endl;
-            //std::cout << "angle1 change: " << angle1 << std::endl;
-            //std::cout << "angle2 change: " << angle2 << std::endl;
         }
         draw(cylinders, view);
 
@@ -209,10 +222,34 @@ void updateMasses(){
             vec3 a = simState.masses[i].totalForce/simState.masses[i].weight;
             a += simState.g;
             simState.masses[i].velocity = simState.masses[i].velocity + (a*simState.deltT);
+            collisionResolution(i);
             simState.masses[i].location = simState.masses[i].location + (simState.masses[i].velocity*simState.deltT);
         }
 
         simState.masses[i].totalForce = vec3(0.0f, 0.0f, 0.0f);
+    }
+}
+
+
+void collisionResolution(int i){
+    //Cube collision
+    if(simState.scene == 3 &&
+            simState.masses[i].location.y <= simState.tableHight &&
+            simState.masses[i].velocity.y < 0)     //Collision with plane
+        simState.masses[i].velocity.y = 0.0f;
+
+    //Table collision
+    if(simState.scene == 6){
+        //Collission with top of table
+        if(simState.masses[i].location.y <= simState.tableHight &&
+                (simState.masses[i].location.x < simState.planeSize && simState.masses[i].location.x > -simState.planeSize) &&
+                (simState.masses[i].location.z < simState.planeSize && simState.masses[i].location.z > -simState.planeSize)){
+            if(simState.masses[i].velocity.y < 0){
+                simState.masses[i].velocity.y = 0.0f;
+            }
+        }
+
+
     }
 }
 

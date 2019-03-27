@@ -13,6 +13,8 @@ public:
     void scene2Setup();
     void scene3Setup();
     void scene4Setup();
+    void scene5Setup();
+    void scene6Setup();
 
     void createMasses();
     void create1DSprings();
@@ -33,9 +35,9 @@ public:
 
     float planeSize = 10.0;
     float planeHight = 10.0;
+    float tableHight = -10.0;
 
-    bool addRoof = false;
-    bool addTable = false;
+    int scene;
 };
 
 #endif // SIMSTATE_H
