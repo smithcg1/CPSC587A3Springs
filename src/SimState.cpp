@@ -73,7 +73,7 @@ void SimState::scene3Setup(){
 
     bool useCube = true;
     if (useCube){
-        int cubeSize = 3;
+        int cubeSize = 5;
         width = cubeSize;
         hight = cubeSize;
         length = cubeSize;
@@ -85,7 +85,7 @@ void SimState::scene3Setup(){
     simsPerFrame = 128;
 
     deltT = 0.000005;
-    k = 800;
+    k = 100;
     b = 10;
     l = 10;
 
@@ -186,13 +186,11 @@ void SimState::create3DSprings(int width, int length){
     Spring newSpring = Spring(0,0);
 
     //Create springs
-
-
     for(int i = 0 ; i < (numMasses-1) ; i++){
 
         //Link sheets (XZ)
         if(((int)floor(i/width) % length) != (length-1)){    //If not end of sheet
-            if(i <= (numMasses-1-width)){         //If not bottom row
+            if(i <= (numMasses-1-width)){                   //If not bottom row
                 newSpring = Spring(i, i+width);      //Down
                 springs.push_back(newSpring);
 
@@ -243,13 +241,34 @@ void SimState::create3DSprings(int width, int length){
         }
 
         //Link Across (XY)
-        if(i+(width*length) <= (numMasses-1)){             //If not bottom sheet
-            if(i % width != (width-1)){                                        //If not end of across
+        if(i+(width*length) <= (numMasses-1)){             //If not bottom XZ
+            if(i % width != (width-1)){                    //If not right YZ
                 newSpring = Spring(i, i+1+(width*length));
                 springs.push_back(newSpring);
+
+                if(i%(width*length) < (width*length-width)){ //If not front XY
+                    newSpring = Spring(i, i+1+width+(width*length));
+                    springs.push_back(newSpring);
+                }
+
+                if(i%(width*length) > (width-1)){               //If not back XY
+                    newSpring = Spring(i, i+1-width+(width*length));
+                    springs.push_back(newSpring);
+                }
+            }
+            if(i % width != 0){                              //If not left YZ
+                if(i%(width*length) < (width*length-width)){ //If not front XY
+                    newSpring = Spring(i, i-1+width+(width*length));
+                    springs.push_back(newSpring);
+                }
+
+                if(i%(width*length) > (width-1)){               //If not back XY
+                    newSpring = Spring(i, i-1-width+(width*length));
+                    springs.push_back(newSpring);
+                }
             }
 
-            if(i % width != 0){                            //If not start of across
+            if(i % width != 0){                            //If not back XY
                 newSpring = Spring(i, i-1+(width*length));
                 springs.push_back(newSpring);
             }
