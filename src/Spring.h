@@ -7,10 +7,12 @@
 class Spring
 {
 public:
-    Spring(int index1, int index2);
+    Spring(int index1, int index2, float l);
 
     int mass1Index;
     int mass2Index;
+
+    float restDistance;
 };
 
 #endif // SPRING_H

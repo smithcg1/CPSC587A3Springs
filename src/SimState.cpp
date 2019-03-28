@@ -2,7 +2,7 @@
 
 SimState::SimState()
 {
-    scene6Setup();
+    scene5Setup();
 }
 
 void SimState::removeOldScene(){
@@ -68,13 +68,13 @@ void SimState::scene3Setup(){
         length = cubeSize;
     }
 
-    float spaceing = 4.5;
+    float spaceing = 5;
 
     scene = 3;
     numMasses = width*hight*length;
     simsPerFrame = 128;
 
-    deltT = 0.0001;
+    deltT = 0.0002;
     k = 800;
     b = 10;
     l = 5;
@@ -86,7 +86,7 @@ void SimState::scene3Setup(){
         float x = ((-(width-1)*spaceing)/2)+((i%width)*spaceing);
         float z = ((-(length-1)*spaceing)/2)+   (    ((int)floor((float)i/width)%length)    *spaceing);
         float y = planeHight -  (    floor((float)i/(width*length))    *spaceing);
-        masses[i].location = vec3(x, y+20, z);
+        masses[i].location = vec3(x, y+40, z);
     }
 }
 
@@ -97,14 +97,16 @@ void SimState::scene4Setup(){
     int width = 10;
     int hight = 10;
 
-    float spaceing = 6;
+    sceneObjWidth = width;
+
+    float spaceing = 5.5;
 
     scene = 4;
     numMasses = width*hight;
     simsPerFrame = 512;
 
     deltT = 0.00005;
-    k = 800;
+    k = 500;
     b = 10;
     l = 5;
 
@@ -113,13 +115,31 @@ void SimState::scene4Setup(){
 
     for(int i = 0 ; i < masses.size() ; i++){
         float x = ((-(width-1)*spaceing)/2)+((i%width)*spaceing);
-        float y = planeHight - (floor((float)i/width)*spaceing);
+        float y = planeHight - (floor((float)i/width)*spaceing)         +10;
         float z = 0.0f;
         masses[i].location = vec3(x, y, z);
+
+        if(i < width){
+            float x = ((-(width-1)*l)/2)+((i%width)*l);
+            masses[i].location = vec3(x, y, z);
+        }
+
+        if(i == numMasses/4)
+            masses[i].location = vec3(x, y+1, -2.0f);
+
+        if(i == numMasses/2)
+            masses[i].location = vec3(x, y-2, 3.0f);
+
+        if(i == 3*numMasses/4)
+            masses[i].location = vec3(x+2, y, -2.0f);
+
+        if(i == (numMasses-1))
+            masses[i].location = vec3(x+2, y, 7.0f);
 
         if(i < width)
             masses[i].dynamic = false;
     }
+
 }
 
 //Flapping flag
@@ -129,13 +149,15 @@ void SimState::scene5Setup(){
     int width = 10;
     int hight = 10;
 
-    float spaceing = 6;
+    sceneObjWidth = width;
+
+    float spaceing = 5;
 
     scene = 5;
     numMasses = width*hight;
     simsPerFrame = 512;
 
-    deltT = 0.00005;
+    deltT = 0.0001;
     k = 800;
     b = 10;
     l = 5;
@@ -145,9 +167,12 @@ void SimState::scene5Setup(){
 
     for(int i = 0 ; i < masses.size() ; i++){
         float x = ((-(width-1)*spaceing)/2)+((i%width)*spaceing);
-        float y = planeHight - (floor((float)i/width)*spaceing);
+        float y = planeHight - (floor((float)i/width)*spaceing) + 15;
         float z = 0.0f;
         masses[i].location = vec3(x, y, z);
+
+        if(i == (numMasses-1))
+            masses[i].location = vec3(x, y, 5.0f);
 
         if(i == 0 || i == (int)floor(hight/2)*width || i == (hight-1)*width)
             masses[i].dynamic = false;
@@ -160,6 +185,8 @@ void SimState::scene6Setup(){
 
     int width = 32;
     int hight = 32;
+
+    sceneObjWidth = width;
 
     float spaceing = 1.2;
 
@@ -177,8 +204,7 @@ void SimState::scene6Setup(){
 
     for(int i = 0 ; i < masses.size() ; i++){
         float x = ((-(width-1)*spaceing)/2)+((i%width)*spaceing);
-        float y = planeHight*3;
-        //float z = -(hight-1/2) + (floor((float)i/width)*spaceing);
+        float y = planeHight*2;
         float z = ((-(hight-1)*spaceing)/2)+   (    ((int)floor((float)i/hight)%hight)    *spaceing);
         masses[i].location = vec3(x, y, z);
     }
@@ -201,42 +227,58 @@ void SimState::createMasses(){
 void SimState::create1DSprings(){
     //Create springs
     for(int i = 0 ; i < (numMasses-1) ; i++){
-        Spring newSpring = Spring(i, i+1);
+        Spring newSpring = Spring(i, i+1, l);
         springs.push_back(newSpring);
         //std::cout << "Spring created" << std::endl;
     }
 }
 
 void SimState::create2DSprings(int width){
-    Spring newSpring = Spring(0,0);
+    Spring newSpring = Spring(0,0,l);
+
+    float springLength2 = sqrt(pow(l,2)+pow(l,2));      //Diagonal springs are sqrt(a^2 + b^2)
 
     //Create springs
     for(int i = 0 ; i < (numMasses-1) ; i++){
         if(i <= (numMasses-1-width)){         //If not bottom row
-            newSpring = Spring(i, i+width);      //Down
+            newSpring = Spring(i, i+width, l);      //Down
             springs.push_back(newSpring);
 
             if(i%width != (width-1)){            //If not right edge
-                newSpring = Spring(i, i+1);          //Right
+                newSpring = Spring(i, i+1, l);          //Right
                 springs.push_back(newSpring);
-                newSpring = Spring(i, i+1+width);    //Down-Right
+                newSpring = Spring(i, i+1+width, springLength2);    //Down-Right
                 springs.push_back(newSpring);
             }
 
             if(i%width != 0){  //If not left edge
-                newSpring = Spring(i, i-1+width);      //Attach Down-Left
+                newSpring = Spring(i, i-1+width, springLength2);      //Attach Down-Left
                 springs.push_back(newSpring);
             }
         }
         else{    //Else it is the bottom row
-            newSpring = Spring(i, i+1);          //Right
+            newSpring = Spring(i, i+1, l);          //Right
+            springs.push_back(newSpring);
+        }
+
+        //Reinforcing springs
+        if(i <= (numMasses-1-(width*2))){           //If not bottom 2 rows
+            newSpring = Spring(i, i+(width*2), l*2);          //2 Down
+            springs.push_back(newSpring);
+        }
+
+        if((i%width) < (width-2)){           //If not bottom 2 rows
+            newSpring = Spring(i, i+2, l*2);          //2 Down
             springs.push_back(newSpring);
         }
     }
 }
 
 void SimState::create3DSprings(int width, int length){
-    Spring newSpring = Spring(0,0);
+    Spring newSpring = Spring(0,0, l);
+
+    float springLength2 = sqrt(pow(l,2)+pow(l,2));  //Diagonal springs are sqrt(a^2 + b^2)
+    float springLength3 = sqrt(pow(springLength2,2)+pow(l,2));  //Diagonal springs are sqrt(a^2 + b^2)
 
     //Create springs
     for(int i = 0 ; i < (numMasses-1) ; i++){
@@ -244,23 +286,23 @@ void SimState::create3DSprings(int width, int length){
         //Link sheets (XZ)
         if(((int)floor(i/width) % length) != (length-1)){    //If not end of sheet
             if(i <= (numMasses-1-width)){                   //If not bottom row
-                newSpring = Spring(i, i+width);      //Down
+                newSpring = Spring(i, i+width, l);      //Down
                 springs.push_back(newSpring);
 
                 if(i%width != (width-1)){            //If not right edge
-                    newSpring = Spring(i, i+1);          //Right
+                    newSpring = Spring(i, i+1, l);          //Right
                     springs.push_back(newSpring);
-                    newSpring = Spring(i, i+1+width);    //Down-Right
+                    newSpring = Spring(i, i+1+width, springLength2);    //Down-Right
                     springs.push_back(newSpring);
                 }
 
                 if(i%width != 0){  //If not left edge
-                    newSpring = Spring(i, i-1+width);      //Attach Down-Left
+                    newSpring = Spring(i, i-1+width, springLength2);      //Attach Down-Left
                     springs.push_back(newSpring);
                 }
             }
             else{    //Else it is the bottom row
-                newSpring = Spring(i, i+1);          //Right
+                newSpring = Spring(i, i+1, l);          //Right
                 springs.push_back(newSpring);
             }
 
@@ -268,7 +310,7 @@ void SimState::create3DSprings(int width, int length){
 
         else{
             if(i % (width*length) != (width*length)-1){
-                newSpring = Spring(i, i+1);             //Down
+                newSpring = Spring(i, i+1, l);             //Down
                 springs.push_back(newSpring);
             }
         }
@@ -277,18 +319,18 @@ void SimState::create3DSprings(int width, int length){
 
         //Link strips (YZ)
         if(i+(width*length) <= (numMasses-1)){             //If not bottom sheet
-            newSpring = Spring(i, i+(width*length));             //Down
+            newSpring = Spring(i, i+(width*length), l);             //Down
             springs.push_back(newSpring);
 
 
             if(((int)floor(i/width) % length) != (length-1)){          //If not end of sheet
-                newSpring = Spring(i, i+width+(width*length));
+                newSpring = Spring(i, i+width+(width*length), springLength2);
                 springs.push_back(newSpring);
             }
             //}
 
             if(((int)floor(i/width) % length) != 0){                   //If not start of sheet
-                newSpring = Spring(i, i-width+(width*length));
+                newSpring = Spring(i, i-width+(width*length), springLength2);
                 springs.push_back(newSpring);
             }
         }
@@ -296,33 +338,33 @@ void SimState::create3DSprings(int width, int length){
         //Link Across (XY)
         if(i+(width*length) <= (numMasses-1)){             //If not bottom XZ
             if(i % width != (width-1)){                    //If not right YZ
-                newSpring = Spring(i, i+1+(width*length));
+                newSpring = Spring(i, i+1+(width*length), springLength2);
                 springs.push_back(newSpring);
 
                 if(i%(width*length) < (width*length-width)){ //If not front XY
-                    newSpring = Spring(i, i+1+width+(width*length));
+                    newSpring = Spring(i, i+1+width+(width*length), springLength3);
                     springs.push_back(newSpring);
                 }
 
                 if(i%(width*length) > (width-1)){               //If not back XY
-                    newSpring = Spring(i, i+1-width+(width*length));
+                    newSpring = Spring(i, i+1-width+(width*length), springLength3);
                     springs.push_back(newSpring);
                 }
             }
             if(i % width != 0){                              //If not left YZ
                 if(i%(width*length) < (width*length-width)){ //If not front XY
-                    newSpring = Spring(i, i-1+width+(width*length));
+                    newSpring = Spring(i, i-1+width+(width*length), springLength3);
                     springs.push_back(newSpring);
                 }
 
                 if(i%(width*length) > (width-1)){               //If not back XY
-                    newSpring = Spring(i, i-1-width+(width*length));
+                    newSpring = Spring(i, i-1-width+(width*length), springLength3);
                     springs.push_back(newSpring);
                 }
             }
 
             if(i % width != 0){                            //If not back XY
-                newSpring = Spring(i, i-1+(width*length));
+                newSpring = Spring(i, i-1+(width*length), springLength2);
                 springs.push_back(newSpring);
             }
         }

@@ -37,6 +37,8 @@ public:
     float planeHight = 10.0;
     float tableHight = -10.0;
 
+
+    int sceneObjWidth;
     int scene;
 };
 

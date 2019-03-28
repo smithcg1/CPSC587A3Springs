@@ -1,10 +1,3 @@
-//To-do:
-//Add springs to cube
-//Add collision
-//Tune simulations
-//Complete bonus 2 table
-//Complete bonus 1 Wind
-
 //------------------------------------------------------------------------------
 // A simple example showing how to use the triangle geometry
 //------------------------------------------------------------------------------
@@ -27,7 +20,7 @@ using namespace givr::style;
 
 PhongStyle::InstancedRenderContext spheres;
 PhongStyle::InstancedRenderContext cylinders;
-
+PhongStyle::RenderContext triangles;
 
 void physicsCalculation();
 void updateForces();
@@ -93,6 +86,9 @@ int main(void)
         Phong(Colour(1., 1., 0.1529), LightPosition(0., 0., 10.))
     );
 
+     auto ts = TriangleSoup();
+    triangles = createRenderable(ts,Phong(Colour(1., 1., 0.1529), LightPosition(0., 0., 10.)));
+
 
     /////////////////////////////////////////////////////
     //////////////////// Render Loop ////////////////////
@@ -124,55 +120,96 @@ int main(void)
 
         u += frameTime;
 
-        //Draw masses
-        for (int i = 0; i < simState.masses.size(); i++) {
-            auto m = translate(mat4f{1.f}, simState.masses[i].location);
-            addInstance(spheres, m);
+        if(simState.scene < 4){
+            //Draw masses
+            for (int i = 0; i < simState.masses.size(); i++) {
+                auto m = translate(mat4f{1.f}, simState.masses[i].location);
+                addInstance(spheres, m);
+            }
+            draw(spheres, view);
+
+
+            //Draw springs
+            for (int i = 0; i < simState.springs.size(); i++){
+                //Get spring vector
+                vec3 massLocDiff = simState.masses[simState.springs[i].mass2Index].location - simState.masses[simState.springs[i].mass1Index].location;
+                float len = glm::length(massLocDiff);
+
+                //Translate
+                auto m = mat4f{1.f};
+                m = translate(m, simState.masses[simState.springs[i].mass1Index].location);
+
+
+                float angle1;
+                float angle2;
+                //Rotate along y
+                vec2 xz;
+                if(massLocDiff.x != 0 || massLocDiff.z != 0){xz = normalize(vec2(massLocDiff.x, massLocDiff.z));}
+                else{xz = vec2(1.0f, 0.0f);}
+                if(massLocDiff.x > 0)
+                    angle1 = asin(xz[1]);
+                else
+                    angle1 = M_PI-asin(xz[1]);
+                m = rotate(m, angle1, vec3f{0.0f, -1.0f, 0.0f});
+
+
+                //Rotate along z
+                vec3 rotatedDiff = vec4(massLocDiff, 0.0f)*m;
+                vec2 xy;
+                if(rotatedDiff.x != 0 || rotatedDiff.y != 0){xy = normalize(vec2(rotatedDiff.x, rotatedDiff.y));}
+                else{xy = vec2(1.0f, 0.0f);}
+                angle2 = asin(xy.x);
+                if(xy.y > 0){angle2 = (1*M_PI)-angle2;}
+                m = rotate(m, angle2, vec3f{0.0f, 0.0f, 1.0f});
+
+
+                //Scale
+                m = scale(m, vec3f{1.0f, len, 1.0f});
+
+                addInstance(cylinders, m);
+            }
+            draw(cylinders, view);
         }
-        draw(spheres, view);
+        else{
+            ts.triangles().clear();
 
+            Mass mass;
+            // Loop over all objects in your simulation/animation
+            for(int i = 0; i < simState.masses.size()-simState.sceneObjWidth; i++) {
+                if(i%simState.sceneObjWidth != (simState.sceneObjWidth-1)){
+                   // Get a reference to the object
+                   mass = simState.masses[i];
+                   auto p1 = vec3f(mass.location.x, mass.location.y, mass.location.z);
+                   mass = simState.masses[i+simState.sceneObjWidth];
+                   auto p2 = vec3f(mass.location.x, mass.location.y, mass.location.z);
+                   mass = simState.masses[i+1];
+                   auto p3 = vec3f(mass.location.x, mass.location.y, mass.location.z);
 
-        //Draw springs
-        for (int i = 0; i < simState.springs.size(); i++){
-            //Get spring vector
-            vec3 massLocDiff = simState.masses[simState.springs[i].mass2Index].location - simState.masses[simState.springs[i].mass1Index].location;
-            float len = glm::length(massLocDiff);
+                   // Turn that object into a Triangle (or triangles!)
+                   auto t = Triangle(Point1(p1), Point2(p2), Point3(p3));
 
-            //Translate
-            auto m = mat4f{1.f};
-            m = translate(m, simState.masses[simState.springs[i].mass1Index].location);
+                   // Add that triangle to the triangle soup
+                   ts.push_back(t);
 
+                   // Get a reference to the object
+                   mass = simState.masses[i+simState.sceneObjWidth];
+                   p1 = vec3f(mass.location.x, mass.location.y, mass.location.z);
+                   mass = simState.masses[i+simState.sceneObjWidth+1];
+                   p2 = vec3f(mass.location.x, mass.location.y, mass.location.z);
+                   mass = simState.masses[i+1];
+                   p3 = vec3f(mass.location.x, mass.location.y, mass.location.z);
 
-            float angle1;
-            float angle2;
-            //Rotate along y
-            vec2 xz;
-            if(massLocDiff.x != 0 || massLocDiff.z != 0){xz = normalize(vec2(massLocDiff.x, massLocDiff.z));}
-            else{xz = vec2(1.0f, 0.0f);}
-            if(massLocDiff.x > 0)
-                angle1 = asin(xz[1]);
-            else
-                angle1 = M_PI-asin(xz[1]);
-            m = rotate(m, angle1, vec3f{0.0f, -1.0f, 0.0f});
+                   // Turn that object into a Triangle (or triangles!)
+                   t = Triangle(Point1(p1), Point2(p2), Point3(p3));
 
+                   // Add that triangle to the triangle soup
+                   ts.push_back(t);
+                }
+            }
 
-            //Rotate along z
-            vec3 rotatedDiff = vec4(massLocDiff, 0.0f)*m;
-            vec2 xy;
-            if(rotatedDiff.x != 0 || rotatedDiff.y != 0){xy = normalize(vec2(rotatedDiff.x, rotatedDiff.y));}
-            else{xy = vec2(1.0f, 0.0f);}
-            angle2 = asin(xy.x);
-            if(xy.y > 0){angle2 = (1*M_PI)-angle2;}
-            m = rotate(m, angle2, vec3f{0.0f, 0.0f, 1.0f});
-
-
-            //Scale
-            m = scale(m, vec3f{1.0f, len, 1.0f});
-
-            addInstance(cylinders, m);
+            updateRenderable(ts, Phong(Colour(1., 1., 0.1529), LightPosition(0., 0., 10.)), triangles);
+            draw(triangles, view);
         }
-        draw(cylinders, view);
-
     });
     exit(EXIT_SUCCESS);
 }
@@ -193,6 +230,7 @@ int main(void)
 //Have each spring apply force to masses
 //Have masses update their location
 
+vec3 v = vec3(1.0f, 0.0f, 0.0f);      //Wind vector
 
 void physicsCalculation(){
     updateForces();
@@ -206,15 +244,59 @@ void updateForces(){
         float len = glm::length(massLocDiff);
         vec3 direction = normalize(massLocDiff);
 
-        vec3 F = -simState.k*(len - simState.l)*direction;         //Base force
+        vec3 F = -simState.k*(len - simState.springs[i].restDistance)*direction;         //Base force
 
         simState.masses[simState.springs[i].mass1Index].totalForce += -F;
         simState.masses[simState.springs[i].mass2Index].totalForce += F;
     }
-
 }
 
 void updateMasses(){
+    //If scene 5, add wind force
+    if(simState.scene == 5){
+        int maxIndex = (simState.numMasses-simState.sceneObjWidth);
+        for (int i = 0 ; i < maxIndex ; i++){
+            Mass mass1 = simState.masses[i];
+            Mass mass2 = simState.masses[i+simState.sceneObjWidth];
+            Mass mass3 = simState.masses[i+1];
+
+            vec3 p = (mass1.velocity + mass2.velocity + mass3.velocity);
+            if(length(p) > 50)
+                std::cout << "p: " << length(p) << std::endl;
+
+            p = vec3(p.x/3, p.y/3, p.z/3);
+            vec3 vr = v-p;
+
+            //std::cout << "v: (" << v.x << "," << v.y << "," << v.z << ")"<< std::endl;
+
+
+            vec3 normal = normalize(cross((mass2.location - mass1.location),(mass3.location - mass1.location)));
+            vec3 vn = dot(normal, vr)* vr;
+            vec3 vt = vr - vn;
+
+            //std::cout << "vn: (" << vn.x << "," << vn.y << "," << vn.z << ")"<< std::endl;
+
+            float A = (length(mass2.location - mass1.location)*length(mass3.location - mass1.location))/2;
+            float alphan = 0.001f;
+            float alphat = 0.2f;
+
+            vec3 Fn = alphan*A*v*vn;
+            vec3 Ft = alphat*A*vt;
+
+            //std::cout << "Fn: " << length(Fn) << "   Ft: " << length(Ft) << std::endl;
+            //std::cout << "Fn: (" << Fn.x << "," << Fn.y << "," << Fn.z << ")"<< std::endl;
+
+            vec3 extraF = Fn + Ft;
+            //std::cout << "extraF: " << length(extraF) << std::endl;
+            //std::cout << "extraF: (" << extraF.x << "," << extraF.y << "," << extraF.z << ")"<< std::endl;
+
+            simState.masses[i].totalForce += Fn + Ft;
+            simState.masses[i+simState.sceneObjWidth].totalForce += Fn + Ft;
+            simState.masses[i+1].totalForce += Fn + Ft;
+        }
+    }
+
+
     for (int i = 0 ; i < simState.masses.size() ; i++){
         if(simState.masses[i].dynamic){
             simState.masses[i].totalForce = simState.masses[i].totalForce - simState.b*simState.masses[i].velocity;
@@ -301,7 +383,7 @@ void collisionResolution(int i){
         /////////////////////////////////////////////////////
 
 void createShapes(){
-    //Setup shapes
+    //Setup shapeswindVec
     spheres = createInstancedRenderable(
         Sphere(
             Radius(1.0f)
