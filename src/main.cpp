@@ -230,7 +230,7 @@ int main(void)
 //Have each spring apply force to masses
 //Have masses update their location
 
-vec3 v = vec3(1.0f, 0.0f, 0.0f);      //Wind vector
+vec3 v = vec3(10.0f, 0.0f, 0.0f);      //Wind vector
 
 void physicsCalculation(){
     updateForces();
@@ -256,43 +256,51 @@ void updateMasses(){
     if(simState.scene == 5){
         int maxIndex = (simState.numMasses-simState.sceneObjWidth);
         for (int i = 0 ; i < maxIndex ; i++){
-            Mass mass1 = simState.masses[i];
-            Mass mass2 = simState.masses[i+simState.sceneObjWidth];
-            Mass mass3 = simState.masses[i+1];
+            if(i%simState.sceneObjWidth != simState.sceneObjWidth-1){
+                Mass mass1 = simState.masses[i];
+                Mass mass2 = simState.masses[i+simState.sceneObjWidth];
+                Mass mass3 = simState.masses[i+1];
 
-            vec3 p = (mass1.velocity + mass2.velocity + mass3.velocity);
-            if(length(p) > 50)
-                std::cout << "p: " << length(p) << std::endl;
+                vec3 p = (mass1.velocity + mass2.velocity + mass3.velocity);
 
-            p = vec3(p.x/3, p.y/3, p.z/3);
-            vec3 vr = v-p;
+                p = vec3(p.x/3, p.y/3, p.z/3);
+                vec3 vr = v-p;
 
-            //std::cout << "v: (" << v.x << "," << v.y << "," << v.z << ")"<< std::endl;
+                //std::cout << "v: (" << v.x << "," << v.y << "," << v.z << ")"<< std::endl;
 
+                vec3 normal = normalize(cross((mass2.location - mass1.location),(mass3.location - mass1.location)));
+                vec3 vn = dot(normal, normalize(vr))* v;
+                vec3 vt = v - vn;
 
-            vec3 normal = normalize(cross((mass2.location - mass1.location),(mass3.location - mass1.location)));
-            vec3 vn = dot(normal, vr)* vr;
-            vec3 vt = vr - vn;
+                //std::cout << "vn: (" << vn.x << "," << vn.y << "," << vn.z << ")"<< std::endl;
 
-            //std::cout << "vn: (" << vn.x << "," << vn.y << "," << vn.z << ")"<< std::endl;
+                float A = (length(mass2.location - mass1.location)*length(mass3.location - mass1.location))/2;
+                //float A = 0.5;
+                float alphan = 1.0f;
+                float alphat = alphan;
 
-            float A = (length(mass2.location - mass1.location)*length(mass3.location - mass1.location))/2;
-            float alphan = 0.001f;
-            float alphat = 0.2f;
+                vec3 Fn = alphan*A*v*vn;
+                vec3 Ft = alphat*A*vt;
 
-            vec3 Fn = alphan*A*v*vn;
-            vec3 Ft = alphat*A*vt;
+                //std::cout << "Fn: " << length(Fn) << "   Ft: " << length(Ft) << std::endl;
+                //std::cout << "Fn: (" << Fn.x << "," << Fn.y << "," << Fn.z << ")"<< std::endl;
 
-            //std::cout << "Fn: " << length(Fn) << "   Ft: " << length(Ft) << std::endl;
-            //std::cout << "Fn: (" << Fn.x << "," << Fn.y << "," << Fn.z << ")"<< std::endl;
+                vec3 extraF = Fn + Ft;
+                if(length(extraF) > 20){
+                    //std::cout << "extraF: " << length(extraF) << std::endl;
+                }
+                if(extraF.x < 0){
+                    extraF = vec3(-extraF.x, extraF.y, extraF.z);
+                    //std::cout << "extraF: " << length(extraF) << std::endl;
+                }
 
-            vec3 extraF = Fn + Ft;
-            //std::cout << "extraF: " << length(extraF) << std::endl;
-            //std::cout << "extraF: (" << extraF.x << "," << extraF.y << "," << extraF.z << ")"<< std::endl;
+                //std::cout << "extraF: " << length(extraF) << std::endl;
+                //std::cout << "extraF: (" << extraF.x << "," << extraF.y << "," << extraF.z << ")"<< std::endl;
 
-            simState.masses[i].totalForce += Fn + Ft;
-            simState.masses[i+simState.sceneObjWidth].totalForce += Fn + Ft;
-            simState.masses[i+1].totalForce += Fn + Ft;
+                simState.masses[i].totalForce += extraF;
+                simState.masses[i+simState.sceneObjWidth].totalForce += extraF;
+                simState.masses[i+1].totalForce += extraF;
+            }
         }
     }
 

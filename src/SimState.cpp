@@ -146,21 +146,21 @@ void SimState::scene4Setup(){
 void SimState::scene5Setup(){
     removeOldScene();
 
-    int width = 10;
-    int hight = 10;
+    int width = 15;
+    int hight = 15;
 
     sceneObjWidth = width;
 
-    float spaceing = 5;
+    float spaceing = 2;
 
     scene = 5;
     numMasses = width*hight;
-    simsPerFrame = 512;
+    simsPerFrame = 128;
 
-    deltT = 0.0001;
+    deltT = 0.001;
     k = 800;
     b = 10;
-    l = 5;
+    l = 2;
 
     createMasses();
     create2DSprings(width);
