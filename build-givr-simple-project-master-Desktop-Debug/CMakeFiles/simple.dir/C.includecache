@@ -1,0 +1,38 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/uga/smithcg/Desktop/CPSC587/CPSC587A3/libs/KHR/khrplatform.h
+stdint.h
+-
+inttypes.h
+-
+stdint.h
+-
+
+/home/uga/smithcg/Desktop/CPSC587/CPSC587A3/libs/glad.c
+stdio.h
+-
+stdlib.h
+-
+string.h
+-
+glad/glad.h
+-
+windows.h
+-
+winapifamily.h
+-
+dlfcn.h
+-
+
+/home/uga/smithcg/Desktop/CPSC587/CPSC587A3/libs/glad/glad.h
+windows.h
+-
+KHR/khrplatform.h
+-
+
