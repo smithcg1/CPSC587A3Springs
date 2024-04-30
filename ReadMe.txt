@@ -1,3 +1,5 @@
+Completed for CPSC587A3
+
 Use buttons 1-6 to cycle through scenes
 1: Single mass spring
 2: Chain
